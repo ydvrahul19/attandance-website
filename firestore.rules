@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Profiles: you can read your own, admin can read all. Nobody can write from the app
+    // (accounts are created with `npm run create-users`).
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if false;
+    }
+
+    // One record per user per day, id = "<uid>_<yyyy-mm-dd>"
+    match /attendance/{recId} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      // Check in: only for yourself, one doc per day, time set by the server clock
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && recId == request.auth.uid + '_' + request.resource.data.date
+        && request.resource.data.inAt == request.time
+        && request.resource.data.outAt == null;
+
+      // Check out: only your own open record, time set by the server clock
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && resource.data.outAt == null
+        && request.resource.data.outAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'outAt', 'customers', 'visitors', 'notes']);
+
+      allow delete: if false;
+    }
+  }
+}
