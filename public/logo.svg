@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 84" width="240" height="84">
+  <g fill="none" stroke="#E87722" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 44V14L120 34L144 14V44"/>
+    <path d="M74 27V37M82 20V44M90 25V39"/>
+    <path d="M150 25V39M158 20V44M166 27V37"/>
+  </g>
+  <text x="120" y="70" text-anchor="middle" font-family="Montserrat,Arial Black,Arial,sans-serif" font-weight="800" font-size="19" letter-spacing="1" fill="#ffffff">M&amp;Y FITNESS CLUB</text>
+</svg>

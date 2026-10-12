@@ -92,3 +92,32 @@ firebase.json              hosting + rules config
   user pastes it into the group.
 - Keep `scripts/serviceAccountKey.json` and `scripts/users.json` out of public repos
   (already in `.gitignore`).
+
+## Logo and profile photos
+- **Logo:** save your real logo as `public/logo.png`. If it is missing, `public/logo.svg` is shown.
+- **Profile photo:** each user opens *User profile* → **Upload photo**. The photo is cropped to a
+  square, shrunk, and saved in their profile, so no extra Firebase service is needed.
+- **Edit profile:** users can edit their name, date of birth, gender, email, phone, address and
+  emergency contact. Joining date and ID are locked (admin only).
+- After updating from an older version, re-publish `firestore.rules` in Firebase (Firestore → Rules → Publish).
+- Running `create-users` again never overwrites details a user edited; it only refreshes role and ID
+  (and the password).
+
+## Deploy on Vercel (alternative to Firebase Hosting)
+`vercel.json` is included. Two ways:
+
+**A. With GitHub (easiest)**
+1. Push this project to a GitHub repo (`scripts/serviceAccountKey.json` and `scripts/users.json` are
+   already in `.gitignore`, so they are not uploaded).
+2. On vercel.com: **Add New → Project → import the repo**. Framework shows as *Vite*. Click **Deploy**.
+3. Every future `git push` redeploys automatically.
+
+**B. With the Vercel CLI**
+```
+npm install -g vercel
+vercel login
+vercel --prod
+```
+
+After deploying, add your Vercel link in Firebase: **Authentication → Settings → Authorized domains →
+Add domain** (for example `my-attendance.vercel.app`). Set `TEST_MODE` to `false` first.

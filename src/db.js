@@ -92,3 +92,10 @@ export function watchAttendance(cb) {
     (e) => console.error("attendance", e)
   );
 }
+
+// ---------- profile photo ----------
+// Stored as a small image (data URL, ~20 KB) inside the user's own profile document
+export const updatePhoto = (uid, dataUrl) => updateDoc(doc(db, "users", uid), { photo: dataUrl });
+
+// Fields a user may edit on their own profile (must match firestore.rules)
+export const updateProfile = (uid, fields) => updateDoc(doc(db, "users", uid), fields);

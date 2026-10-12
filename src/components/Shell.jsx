@@ -1,10 +1,10 @@
+import Logo from "./Logo.jsx";
+
 export default function Shell({ tabs, tab, setTab, onLogout, wide, children }) {
   return (
     <div className="app">
       <aside className="side">
-        <div className="brand" style={{ padding: "0 8px 18px" }}>
-          <div className="mark">M</div>M&amp;Y
-        </div>
+        <div className="side-logo"><Logo height={46} /></div>
         {tabs.map(([key, label]) => (
           <button key={key} className={"nav" + (tab === key ? " on" : "")} onClick={() => setTab(key)}>
             {label}

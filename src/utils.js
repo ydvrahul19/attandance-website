@@ -60,3 +60,21 @@ export function downloadCsv(filename, rows) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// Crop to a square and shrink a chosen photo so it is small enough to store (returns a data URL)
+export function resizeImage(file, size = 256) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(img.width, img.height);
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      c.getContext("2d").drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg", 0.8));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Not an image")); };
+    img.src = url;
+  });
+}

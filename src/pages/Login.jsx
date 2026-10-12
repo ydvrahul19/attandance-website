@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { loginWithId } from "../db.js";
+import Logo from "../components/Logo.jsx";
 
 export default function Login() {
   const [id, setId] = useState("");
@@ -23,7 +24,7 @@ export default function Login() {
   return (
     <div className="login">
       <div className="card">
-        <div className="brand"><div className="mark">M</div>M&amp;Y FITNESS CLUB</div>
+        <Logo height={64} />
         <h1>Staff login</h1>
         <p className="sub">Sign in with the ID and password given to you.</p>
 

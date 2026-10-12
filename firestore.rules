@@ -8,11 +8,28 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Profiles: you can read your own, admin can read all. Nobody can write from the app
-    // (accounts are created with `npm run create-users`).
+    function okStr(v, max) { return v is string && v.size() <= max; }
+    function validProfile(d) {
+      return okStr(d.name, 60) && d.name.size() > 0
+        && (!('photo' in d) || okStr(d.photo, 150000))
+        && (!('dob' in d) || okStr(d.dob, 10))
+        && (!('gender' in d) || okStr(d.gender, 20))
+        && (!('email' in d) || okStr(d.email, 100))
+        && (!('phone' in d) || okStr(d.phone, 25))
+        && (!('address' in d) || okStr(d.address, 250))
+        && (!('emergency' in d) || okStr(d.emergency, 120));
+    }
+
+    // Profiles: you can read your own, admin can read all.
+    // You may edit only your own contact details and photo. Role, ID and joining date are locked.
+    // Accounts are created with `npm run create-users`.
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if false;
+      allow create, delete: if false;
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['photo', 'name', 'dob', 'gender', 'email', 'phone', 'address', 'emergency'])
+        && validProfile(request.resource.data);
     }
 
     // One record per user per day, id = "<uid>_<yyyy-mm-dd>"

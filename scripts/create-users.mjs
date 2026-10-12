@@ -28,7 +28,14 @@ for (const u of users) {
     rec = await auth.createUser({ email, password, displayName: u.name });
     console.log("Created :", loginId);
   }
-  await db.collection("users").doc(rec.uid).set({ ...profile, loginId });
+  const ref = db.collection("users").doc(rec.uid);
+  if ((await ref.get()).exists) {
+    // Profile already exists: keep what the user edited, only refresh role and ID
+    await ref.set({ role: profile.role, loginId }, { merge: true });
+    console.log("          profile details kept");
+  } else {
+    await ref.set({ ...profile, loginId });
+  }
 }
 console.log("Done.");
 process.exit(0);
