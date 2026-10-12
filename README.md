@@ -66,7 +66,7 @@ date/time → WhatsApp group opens → logout).
 
 ## Data layout
 - `users/{uid}` – profile + role (`admin` or `user`)
-- `attendance/{uid}_{yyyy-mm-dd}` – one record per person per day: in time, out time, customers,
+- `attendance/{uid}_{yyyy-mm-dd}_{n}` – one record per session (a person can start and finish several sessions a day, one at a time): in time, out time, customers,
   visitors, notes. In/out times come from Firebase's server clock, so a phone's wrong clock can't change them.
 
 ## Project structure

@@ -37,29 +37,29 @@ const norm = (snap) => {
 };
 
 // ---------- user side ----------
-// The record the user is working on: yesterday's if still open (overnight shift), else today's
-export async function getCurrent(uid) {
-  // A document that does not exist yet can be reported as "permission-denied"; treat that as "not found"
-  const read = async (id) => {
-    try {
-      const snap = await getDoc(doc(db, "attendance", id));
-      return snap.exists() ? norm(snap) : null;
-    } catch (e) {
-      if (e.code === "permission-denied") return null;
-      throw e;
-    }
-  };
+// All of this user's sessions from yesterday and today.
+//   open   = the session still running (could be yesterday's, for an overnight shift), or null
+//   todays = every session started today, oldest first
+// A user can start and finish as many sessions per day as they like, one at a time.
+export async function getSessions(uid) {
+  const snap = await getDocs(query(collection(db, "attendance"), where("uid", "==", uid)));
   const y = new Date(); y.setDate(y.getDate() - 1);
-  const yRec = await read(`${uid}_${dateKey(y)}`);
-  if (yRec && !yRec.outAt) return yRec;
-  return read(`${uid}_${dateKey(new Date())}`);
+  const from = dateKey(y), today = dateKey(new Date());
+  const recs = snap.docs.map(norm).filter((r) => r.date >= from).sort((a, b) => a.inAt.localeCompare(b.inAt));
+  return {
+    open: recs.find((r) => !r.outAt) || null,
+    todays: recs.filter((r) => r.date === today),
+  };
 }
 
-export async function checkIn(profile, distance) {
+// Number for the next session today (old one-per-day records count as session 1)
+export const nextSessionNo = (todays) => todays.reduce((m, r) => Math.max(m, r.session ?? 1), 0) + 1;
+
+export async function checkIn(profile, distance, session) {
   const date = dateKey(new Date());
-  const ref = doc(db, "attendance", `${profile.uid}_${date}`);
+  const ref = doc(db, "attendance", `${profile.uid}_${date}_${session}`);
   await setDoc(ref, {
-    uid: profile.uid, name: profile.name, date,
+    uid: profile.uid, name: profile.name, date, session,
     inAt: serverTimestamp(), outAt: null,
     customers: null, visitors: null, notes: "", distance,
   });

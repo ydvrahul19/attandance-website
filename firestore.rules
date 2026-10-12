@@ -32,16 +32,31 @@ service cloud.firestore {
         && validProfile(request.resource.data);
     }
 
-    // One record per user per day, id = "<uid>_<yyyy-mm-dd>"
+    // Many sessions per user per day, id = "<uid>_<yyyy-mm-dd>_<session number>"
+    // (older records from before this change have the id "<uid>_<yyyy-mm-dd>" and count as session 1)
+    function attPath(id) { return /databases/$(database)/documents/attendance/$(id); }
+
+    // A new session may start only when the one before it has been finished
+    function previousFinished(uid, date, n) {
+      return (n == 1 && !exists(attPath(uid + '_' + date)))
+        || (n > 1 && exists(attPath(uid + '_' + date + '_' + string(n - 1)))
+                  && get(attPath(uid + '_' + date + '_' + string(n - 1))).data.outAt != null)
+        || (n == 2 && exists(attPath(uid + '_' + date))
+                  && get(attPath(uid + '_' + date)).data.outAt != null);
+    }
+
     match /attendance/{recId} {
       allow read: if signedIn() && (resource == null || resource.data.uid == request.auth.uid || isAdmin());
 
-      // Check in: only for yourself, one doc per day, time set by the server clock
+      // Check in: only for yourself, time set by the server clock
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
-        && recId == request.auth.uid + '_' + request.resource.data.date
+        && request.resource.data.session is int
+        && request.resource.data.session >= 1 && request.resource.data.session <= 20
+        && recId == request.auth.uid + '_' + request.resource.data.date + '_' + string(request.resource.data.session)
         && request.resource.data.inAt == request.time
-        && request.resource.data.outAt == null;
+        && request.resource.data.outAt == null
+        && previousFinished(request.auth.uid, request.resource.data.date, request.resource.data.session);
 
       // Check out: only your own open record, time set by the server clock
       allow update: if signedIn()

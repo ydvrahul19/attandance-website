@@ -24,16 +24,16 @@ export default function LogoutLog({ staff, all }) {
       <div className="scroll">
         <table>
           <thead>
-            <tr><th>Date</th><th>Time</th><th>Name</th><th>Customers</th><th>Visitors</th><th>Notes</th></tr>
+            <tr><th>Date</th><th>In</th><th>Out</th><th>Name</th><th>Customers</th><th>Visitors</th><th>Notes</th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
-                <td>{showDate(dateKey(new Date(r.outAt)))}</td><td>{showTime(r.outAt)}</td><td>{r.name}</td>
+                <td>{showDate(dateKey(new Date(r.outAt)))}</td><td>{showTime(r.inAt)}</td><td>{showTime(r.outAt)}</td><td>{r.name}</td>
                 <td>{r.customers}</td><td>{r.visitors}</td><td className="notes">{r.notes || "–"}</td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan="6" className="empty">No logout reports found for these filters.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan="7" className="empty">No logout reports found for these filters.</td></tr>}
           </tbody>
         </table>
       </div>

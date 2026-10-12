@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { isConfigured } from "./firebaseConfig.js";
-import { getCurrent, logout, watchAttendance, watchAuth, watchStaff } from "./db.js";
+import { getSessions, logout, watchAttendance, watchAuth, watchStaff } from "./db.js";
 import Shell from "./components/Shell.jsx";
 import Login from "./pages/Login.jsx";
 import Profile from "./pages/Profile.jsx";
@@ -26,8 +26,8 @@ function Message({ title, children, action }) {
 function UserApp({ user: initialUser }) {
   const [user, setUser] = useState(initialUser); // updated when the user edits their profile
   const [tab, setTab] = useState("profile");
-  const [rec, setRec] = useState(null);
-  const reload = async () => setRec(await getCurrent(user.uid));
+  const [sess, setSess] = useState({ open: null, todays: [] });
+  const reload = async () => setSess(await getSessions(user.uid));
   useEffect(() => { reload().catch(() => {}); }, [user.uid]);
 
   const tabs = [
@@ -39,8 +39,8 @@ function UserApp({ user: initialUser }) {
   return (
     <Shell tabs={tabs} tab={tab} setTab={(t) => { setTab(t); reload().catch(() => {}); }} onLogout={logout}>
       {tab === "profile" && <Profile user={user} onSaved={setUser} />}
-      {tab === "start" && <AttendanceStart user={user} rec={rec} reload={reload} />}
-      {tab === "out" && <AttendanceOut user={user} rec={rec} />}
+      {tab === "start" && <AttendanceStart user={user} open={sess.open} todays={sess.todays} reload={reload} />}
+      {tab === "out" && <AttendanceOut user={user} rec={sess.open} />}
     </Shell>
   );
 }

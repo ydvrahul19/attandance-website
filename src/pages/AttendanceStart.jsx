@@ -1,22 +1,23 @@
 import { useState } from "react";
 import { GYM, SHOW_TEST_BUTTON } from "../config.js";
-import { checkIn } from "../db.js";
-import { distanceMeters, dateKey, showTime } from "../utils.js";
+import { checkIn, nextSessionNo } from "../db.js";
+import { distanceMeters, showTime } from "../utils.js";
 
-export default function AttendanceStart({ user, rec, reload }) {
+export default function AttendanceStart({ user, open, todays, reload }) {
   const [status, setStatus] = useState(null); // { ok, msg }
   const [busy, setBusy] = useState(false);
-  const started = rec && !rec.outAt;
-  const doneToday = rec && rec.outAt && rec.date === dateKey(new Date());
+  const started = !!open;
+  const finished = todays.filter((r) => r.outAt);
 
   const markStarted = async (distance) => {
     setBusy(true);
     let r;
     try {
-      r = await checkIn(user, distance);
+      r = await checkIn(user, distance, nextSessionNo(todays));
     } catch (e) {
       console.error("check in", e);
-      setStatus({ ok: false, msg: "Could not save your attendance (" + (e.code || e.message) + ")." });
+      setStatus({ ok: false, msg: "Could not save your attendance (" + (e.code || e.message) + "). If you started on another device, press Attendance start again." });
+      try { await reload(); } catch { /* ignore */ }
       setBusy(false);
       return;
     }
@@ -59,29 +60,43 @@ export default function AttendanceStart({ user, rec, reload }) {
   return (
     <div className="pbox">
       <h2>Attendance start</h2>
-      <p className="sub">You can start only when you are within {GYM.radius} m of the club.</p>
+      <p className="sub">
+        You can start only when you are within {GYM.radius} m of the club. You can start and finish
+        more than once a day.
+      </p>
 
       {started && (
         <div className="status ok">
-          Started at {showTime(rec.inAt)}. Use Attendance out when you finish.
+          Session started at {showTime(open.inAt)}. Use Attendance out when you finish.
         </div>
       )}
-      {doneToday && (
-        <div className="status ok">You already completed today's attendance (out at {showTime(rec.outAt)}).</div>
-      )}
-      {status && !started && !doneToday && <div className={"status " + (status.ok ? "ok" : "bad")}>{status.msg}</div>}
+      {status && !started && <div className={"status " + (status.ok ? "ok" : "bad")}>{status.msg}</div>}
 
-      <button className="btn" disabled={busy || started || doneToday} onClick={start}>
-        {busy ? "Please wait…" : started ? "Already started" : doneToday ? "Done for today" : "Start attendance"}
+      <button className="btn" disabled={busy || started} onClick={start}>
+        {busy ? "Please wait…" : started ? "Already started" : finished.length ? "Start another session" : "Start attendance"}
       </button>
 
       {/* ===== TEMPORARY TEST BUTTON: hidden when SHOW_TEST_BUTTON is false in src/config.js ===== */}
-      {SHOW_TEST_BUTTON && !started && !doneToday && (
+      {SHOW_TEST_BUTTON && !started && (
         <button className="btn ghost" disabled={busy} onClick={() => markStarted(0)}>
           Skip location check (testing only)
         </button>
       )}
       {/* ===== END TEMPORARY TEST BUTTON ===== */}
+
+      {finished.length > 0 && (
+        <div className="scroll">
+          <h2 style={{ fontSize: 15, marginTop: 22 }}>Today's completed sessions</h2>
+          <table>
+            <thead><tr><th>#</th><th>In</th><th>Out</th></tr></thead>
+            <tbody>
+              {finished.map((r) => (
+                <tr key={r.id}><td>{r.session ?? 1}</td><td>{showTime(r.inAt)}</td><td>{showTime(r.outAt)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
