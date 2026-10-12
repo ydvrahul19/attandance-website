@@ -39,11 +39,20 @@ const norm = (snap) => {
 // ---------- user side ----------
 // The record the user is working on: yesterday's if still open (overnight shift), else today's
 export async function getCurrent(uid) {
+  // A document that does not exist yet can be reported as "permission-denied"; treat that as "not found"
+  const read = async (id) => {
+    try {
+      const snap = await getDoc(doc(db, "attendance", id));
+      return snap.exists() ? norm(snap) : null;
+    } catch (e) {
+      if (e.code === "permission-denied") return null;
+      throw e;
+    }
+  };
   const y = new Date(); y.setDate(y.getDate() - 1);
-  const ySnap = await getDoc(doc(db, "attendance", `${uid}_${dateKey(y)}`));
-  if (ySnap.exists() && !ySnap.data().outAt) return norm(ySnap);
-  const tSnap = await getDoc(doc(db, "attendance", `${uid}_${dateKey(new Date())}`));
-  return tSnap.exists() ? norm(tSnap) : null;
+  const yRec = await read(`${uid}_${dateKey(y)}`);
+  if (yRec && !yRec.outAt) return yRec;
+  return read(`${uid}_${dateKey(new Date())}`);
 }
 
 export async function checkIn(profile, distance) {

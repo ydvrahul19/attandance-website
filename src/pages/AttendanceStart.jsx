@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GYM, TEST_MODE } from "../config.js";
+import { GYM, SHOW_TEST_BUTTON } from "../config.js";
 import { checkIn } from "../db.js";
 import { distanceMeters, dateKey, showTime } from "../utils.js";
 
@@ -11,13 +11,17 @@ export default function AttendanceStart({ user, rec, reload }) {
 
   const markStarted = async (distance) => {
     setBusy(true);
+    let r;
     try {
-      const r = await checkIn(user, distance);
-      setStatus({ ok: true, msg: "Attendance started at " + showTime(r.inAt) + "." });
-      await reload();
+      r = await checkIn(user, distance);
     } catch (e) {
-      setStatus({ ok: false, msg: "Could not save your attendance. Check your internet and try again." });
+      console.error("check in", e);
+      setStatus({ ok: false, msg: "Could not save your attendance (" + (e.code || e.message) + ")." });
+      setBusy(false);
+      return;
     }
+    setStatus({ ok: true, msg: "Attendance started at " + showTime(r.inAt) + "." });
+    try { await reload(); } catch (e) { console.error("reload", e); }
     setBusy(false);
   };
 
@@ -71,11 +75,13 @@ export default function AttendanceStart({ user, rec, reload }) {
         {busy ? "Please wait…" : started ? "Already started" : doneToday ? "Done for today" : "Start attendance"}
       </button>
 
-      {TEST_MODE && !started && !doneToday && (
+      {/* ===== TEMPORARY TEST BUTTON: hidden when SHOW_TEST_BUTTON is false in src/config.js ===== */}
+      {SHOW_TEST_BUTTON && !started && !doneToday && (
         <button className="btn ghost" disabled={busy} onClick={() => markStarted(0)}>
           Skip location check (testing only)
         </button>
       )}
+      {/* ===== END TEMPORARY TEST BUTTON ===== */}
     </div>
   );
 }

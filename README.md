@@ -56,7 +56,7 @@ You get a link like https://your-project.web.app. Share that with staff.
 ## Settings – `src/config.js`
 - `GYM` – gym latitude/longitude and allowed radius (100 m)
 - `WHATSAPP_GROUP_LINK` – your group invite link (already set)
-- `TEST_MODE` – `true` shows a "Skip location check" button; set to `false` before going live
+- `SHOW_TEST_BUTTON` – TEMPORARY. `true` shows a "Skip location check" button for testing; set to `false` when testing is done (records made with it have distance 0)
 
 ## What each side does
 **User:** User profile · Attendance start (GPS within 100 m) · Attendance out (form → saved with
@@ -120,4 +120,4 @@ vercel --prod
 ```
 
 After deploying, add your Vercel link in Firebase: **Authentication → Settings → Authorized domains →
-Add domain** (for example `my-attendance.vercel.app`). Set `TEST_MODE` to `false` first.
+Add domain** (for example `my-attendance.vercel.app`). Set `SHOW_TEST_BUTTON` to `false` first.

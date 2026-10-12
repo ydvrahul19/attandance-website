@@ -10,6 +10,10 @@ export const GYM = {
 // WhatsApp group where attendance reports are posted
 export const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/Ir3EYqdZzTJAEV4CMjWTEF";
 
-// true  = shows a "Skip location check" button so you can test away from the gym
-// false = location check is mandatory (set this before going live)
-export const TEST_MODE = true;
+// ----------------------------------------------------------------------
+// TEMPORARY – FOR TESTING ONLY
+// true  = shows the extra "Skip location check" button on Attendance start
+// false = the button is gone completely; only the real location button remains
+// Set this to false when testing is finished (then redeploy if the site is online).
+// ----------------------------------------------------------------------
+export const SHOW_TEST_BUTTON = true;
