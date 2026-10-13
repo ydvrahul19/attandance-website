@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GYM, SHOW_TEST_BUTTON } from "../config.js";
 import { checkIn, nextSessionNo } from "../db.js";
-import { distanceMeters, showTime } from "../utils.js";
+import { distanceMeters, showDate, showTime } from "../utils.js";
 
 export default function AttendanceStart({ user, open, todays, reload }) {
   const [status, setStatus] = useState(null); // { ok, msg }
@@ -84,14 +84,19 @@ export default function AttendanceStart({ user, open, todays, reload }) {
       )}
       {/* ===== END TEMPORARY TEST BUTTON ===== */}
 
-      {finished.length > 0 && (
+      {todays.length > 0 && (
         <div className="scroll">
-          <h2 style={{ fontSize: 15, marginTop: 22 }}>Today's completed sessions</h2>
+          <h2 style={{ fontSize: 15, marginTop: 22 }}>Today's sessions</h2>
           <table>
-            <thead><tr><th>#</th><th>In</th><th>Out</th></tr></thead>
+            <thead><tr><th>#</th><th>Date</th><th>In</th><th>Out</th></tr></thead>
             <tbody>
-              {finished.map((r) => (
-                <tr key={r.id}><td>{r.session ?? 1}</td><td>{showTime(r.inAt)}</td><td>{showTime(r.outAt)}</td></tr>
+              {todays.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.session ?? 1}</td>
+                  <td>{showDate(r.date)}</td>
+                  <td>{showTime(r.inAt)}</td>
+                  <td>{r.outAt ? showTime(r.outAt) : "–"}</td>
+                </tr>
               ))}
             </tbody>
           </table>
